@@ -24,7 +24,7 @@ mutable struct fastsumplan{D}
 	m::Int32                # cut-off parameter
 	p::Int32                # degree of smoothness
 	kernel::String          # name of kernel
-	c::Ref{Float64}         # kernel parameters
+	c::NTuple{D,Float64}    # kernel parameters
 	eps_I::Float64          # inner boundary
 	eps_B::Float64          # outer boundary
 	init_done::Bool         # bool for plan init
@@ -34,7 +34,7 @@ mutable struct fastsumplan{D}
     alpha::Ref{ComplexF64}  # source coefficients
 	f::Ref{ComplexF64}      # target evaluations
 	plan::Ref{fastsum_plan} # plan (C pointer)
-	function fastsumplan{D}(N::Int32,M::Int32,n::Int32,m::Int32,p::Int32,kernel::String,c::Ref{Float64},eps_I::Float64,eps_B::Float64) where {D}
+	function fastsumplan{D}(N::Int32,M::Int32,n::Int32,m::Int32,p::Int32,kernel::String,c::NTuple{D,Float64},eps_I::Float64,eps_B::Float64) where {D}
 	# create plan object
 	new(N,M,n,m,p,kernel,c,eps_I,eps_B,false,false)
 	end
@@ -42,7 +42,7 @@ mutable struct fastsumplan{D}
 end #struct fastsumplan
 
 function fastsumplan(N::Integer,M::Integer,n::Integer,m::Integer,p::Integer,kernel::String,c::NTuple{D,Float64},eps_I::Float64,eps_B::Float64) where{D}
-println("constructor called")
+
 
   if N <= 0
     error("N has to be a positive Integer.")
@@ -56,9 +56,9 @@ println("constructor called")
   if m <= 0
     error("m has to be a positive Integer.")
   end
-  cv = collect(c)
 
-  fastsumplan{D}(Int32(N),Int32(M),Int32(n),Int32(m),Int32(p),kernel,NTuple{D,Float64}(cv),Float64(eps_I),Float64(eps_B))
+
+  fastsumplan{D}(Int32(N),Int32(M),Int32(n),Int32(m),Int32(p),kernel,c,Float64(eps_I),Float64(eps_B))
 end #constructor
 
 
