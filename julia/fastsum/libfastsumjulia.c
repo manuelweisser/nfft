@@ -23,7 +23,7 @@ fastsum_plan* jfastsum_alloc(){
   return p;
 }
 // c wird von Julia als Float64-Pointer übergeben
-/*
+
 void jfastsum_init(fastsum_plan* fp,int D,int N,int M,char* s,R* c,int n,int m,int p,float eps_I,float eps_B ){
   C (*kernel)(R, int, const R *);
 
@@ -44,7 +44,7 @@ void jfastsum_init(fastsum_plan* fp,int D,int N,int M,char* s,R* c,int n,int m,i
   else if (strcmp(s, "one_over_x") == 0)
     kernel = one_over_x;
   else if (strcmp(s, "inverse_multiquadric3") == 0)
-    //kernel = inverse_multiquadric3;
+    kernel = inverse_multiquadric3;
   else if (strcmp(s, "sinc_kernel") == 0)
     kernel = sinc_kernel;
   else if (strcmp(s, "cosc") == 0)
@@ -65,4 +65,27 @@ void jfastsum_init(fastsum_plan* fp,int D,int N,int M,char* s,R* c,int n,int m,i
 
   fastsum_init_guru(fp,D,N,M,kernel,c,0,n,m,p,eps_I,eps_B);
 }
-*/
+
+double _Complex* jfastsum_set_x(fastsum_plan* fp, double _Complex* x){
+  int N = fp -> N_total;
+  int k;
+  for (k=0; k<N; k++)
+    fp -> x[k] = x[k];
+  return fp->x;
+}
+
+double _Complex* jfastsum_set_y(fastsum_plan* fp, double _Complex* y){
+  int M = fp -> M_total;
+  int k;
+  for (k=0; k<M; k++)
+    fp -> y[k] = y[k];
+  return fp->y;
+}
+
+double _Complex* jfastsum_set_alpha(fastsum_plan* fp, double _Complex* alpha){
+  int N = fp -> N_total;
+  int k;
+  for (k=0; k<N; k++)
+    fp -> alpha[k] = alpha[k];
+  return fp->y;
+}
