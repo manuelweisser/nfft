@@ -31,7 +31,7 @@ mutable struct fastsumplan{D}
 	finalized::Bool	      	# bool for finalizer
 	x::Ref{ComplexF64}      # source nodes
 	y::Ref{ComplexF64}      # target nodes
-    alpha::Ref{ComplexF64}  # source coefficients
+  alpha::Ref{ComplexF64}  # source coefficients
 	f::Ref{ComplexF64}      # target evaluations
 	plan::Ref{fastsum_plan} # plan (C pointer)
 	function fastsumplan{D}(N::Int32,M::Int32,n::Int32,m::Int32,p::Int32,kernel::String,c::Ref{Float64},eps_I::Float64,eps_B::Float64) where D
@@ -51,7 +51,18 @@ function fastsum_init(fp::fastsumplan{D}) where {D}
   ptr,D,fp.N,fp.M,kernel,c,fp.n,fp.m,fp.p,fp.eps_I,fp.eps_B)
 
   Core.setfield!(fp,:init_done, true)
+  finalize_plan(fp)
 end #fastsum_init
+
+function finalize_plan(fp::fastsumplan{D})
+  if !fp.init_done
+    error("Plan not initialized.")
+  end
+
+  if !fp.finalized
+    ccall(("jfastsum_finalize",lib_path),Nothing,(Ref{fastsum_plan},),fp.plan)
+    Core.setfield!(fp,:finalized,true)
+end #finalize_plan
 
 function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
   if !fp.init_done
@@ -186,6 +197,22 @@ function Base.getproperty(fp::fastsumplan{D},v::Symbol) where {D}
 		return Core.getfield(p,v)
 	end
 end # Base.getproperty
+
+function trafo(fp::fastsumplan{D}) where {D}
+  if fp.finalized
+    error("Plan already finalized.")
+  end
+  if !isdefined(fp, :x)
+    error("x has not been set.")
+  end
+  if !isdefined(fp, :y)
+    error("y has not been set.")
+  end
+  if !isdefined(fp, :alpha)
+    error("alpha has not been set.")
+  ptr = ccall(("jfastsum_trafo", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), fp.plan)
+  Core.setfield!(fp,:f,ptr)
+end #trafo
 
 
 end #module

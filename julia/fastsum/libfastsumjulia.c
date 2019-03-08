@@ -89,3 +89,14 @@ double _Complex* jfastsum_set_alpha(fastsum_plan* fp, double _Complex* alpha){
     fp -> alpha[k] = alpha[k];
   return fp->y;
 }
+
+
+double _Complex* jfastsum_trafo(fastsum_plan* fp){
+  fastsum_trafo(fp);
+  return fp -> f;
+}
+
+void jfastsum_finalize(fastsum_plan* fp){
+  fastsum_finalize(fp);
+  return;
+}
