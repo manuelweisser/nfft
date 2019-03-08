@@ -23,10 +23,11 @@ fastsum_plan* jfastsum_alloc(){
   return p;
 }
 // c wird von Julia als Float64-Pointer übergeben
+/*
 void jfastsum_init(fastsum_plan* fp,int D,int N,int M,char* s,R* c,int n,int m,int p,float eps_I,float eps_B ){
   C (*kernel)(R, int, const R *);
 
-/*  if (strcmp(s, "gaussian") == 0)
+  if (strcmp(s, "gaussian") == 0)
     kernel = gaussian;
   else if (strcmp(s, "multiquadric") == 0)
     kernel = multiquadric;
@@ -58,11 +59,10 @@ void jfastsum_init(fastsum_plan* fp,int D,int N,int M,char* s,R* c,int n,int m,i
     kernel = laplacian_rbf;
   else
   {
-    
     s = "multiquadric";
-    */
     kernel = multiquadric;
-//  }
+  }
 
   fastsum_init_guru(fp,D,N,M,kernel,c,0,n,m,p,eps_I,eps_B);
 }
+*/
