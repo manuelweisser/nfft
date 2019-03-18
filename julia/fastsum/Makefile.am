@@ -13,12 +13,12 @@ else
   libadd_for_fftw_threads=
 endif
 # fastsum_test_LDADD = libfastsum.la libkernels.la $(top_builddir)/libnfft3@PREC_SUFFIX@.la
-libnfftjulia_la_LIBADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la @fftw3_LDFLAGS@ $(libadd_for_fftw_threads) @fftw3_LIBS@
+libfastsumjulia_la_LIBADD = $(top_builddir)/libnfft3@PREC_SUFFIX@_julia.la @fftw3_LDFLAGS@ $(libadd_for_fftw_threads) @fftw3_LIBS@
 
 
 libfastsumjulia_la_LDFLAGS = -no-undefined -module -shared -avoid-version @fftw3_LDFLAGS@
 
-EXTRA_DIST = NFFT.jl
+EXTRA_DIST = fastsum.jl
 
 libfastsumjulia-link: all-am
 	soname=`$(EGREP) "^dlname=" libfastsumjulia.la | $(SED) -e "s|^dlname='\(.*\)'|\1|"` ; \
