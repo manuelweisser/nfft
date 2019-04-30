@@ -66,7 +66,7 @@ void jfastsum_init(fastsum_plan* fp,int D,int N,int M,char* s,R* c,int n,int m,i
   fastsum_init_guru(fp,D,N,M,kernel,c,0,n,m,p,eps_I,eps_B);
 }
 
-double _Complex* jfastsum_set_x(fastsum_plan* fp, double _Complex* x){
+double* jfastsum_set_x(fastsum_plan* fp, double* x){
   int N = fp -> N_total;
   int k;
   for (k=0; k<N; k++)
@@ -74,7 +74,7 @@ double _Complex* jfastsum_set_x(fastsum_plan* fp, double _Complex* x){
   return fp->x;
 }
 
-double _Complex* jfastsum_set_y(fastsum_plan* fp, double _Complex* y){
+double* jfastsum_set_y(fastsum_plan* fp, double* y){
   int M = fp -> M_total;
   int k;
   for (k=0; k<M; k++)
@@ -87,7 +87,7 @@ double _Complex* jfastsum_set_alpha(fastsum_plan* fp, double _Complex* alpha){
   int k;
   for (k=0; k<N; k++)
     fp -> alpha[k] = alpha[k];
-  return fp->y;
+  return fp->alpha;
 }
 
 
