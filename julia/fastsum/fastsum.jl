@@ -72,8 +72,7 @@ function fastsum_init(fp::fastsumplan{D}) where {D}
   ccall(("jfastsum_init",lib_path),Nothing,(Ref{fastsum_plan},Int32,Int32,Int32,Cstring,Ref{Float64},Int32,Int32,Int32,Float64,Float64),ptr,D,fp.N,fp.M,fp.kernel,c,fp.n,fp.m,fp.p,fp.eps_I,fp.eps_B)
 
 	Core.setfield!(fp,:init_done, true)
-	println("Init ausgeführt")
-  finalize_plan(fp)
+  finalizer(finalize_plan, fp)
 end #fastsum_init
 
 function finalize_plan(fp::fastsumplan{D}) where{D}
@@ -92,7 +91,7 @@ function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
 	  fastsum_init(fp)
   end
 
-  if !fp.finalized
+  if fp.finalized
 	  error("Plan already finalized")
   end
 
@@ -145,9 +144,8 @@ function Base.setproperty!(fp::fastsumplan{D},v::Symbol,val) where {D}
 		    if (size(val)[1]) != fp.N
 			    error("alpha has to be a ComplexF64 vector of length N.")
 		    end
-			#ptr = ccall(("jfastsum_set_alpha", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},Ref{ComplexF64}), fp.plan, val)
-			#println("alpha in C gesetzt")
-      #Core.setfield!(fp,v,ptr)
+			ptr = ccall(("jfastsum_set_alpha", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},Ref{ComplexF64}), fp.plan, val)
+      Core.setfield!(fp,v,ptr)
 
   	elseif v == :M
 	  	@warn("You can't modify the number of target nodes.")
@@ -210,8 +208,8 @@ function Base.getproperty(fp::fastsumplan{D},v::Symbol) where {D}
 		if !isdefined(fp,:f)
 			error("f is not set.")
 		end
-		ptr = Core.getfield(p,:f)
-		return unsafe_wrap(Vector{ComplexF64},ptr,p.M)  # get function values from C memory and convert to Julia type
+		ptr = Core.getfield(fp,:f)
+		return unsafe_wrap(Vector{ComplexF64},ptr,fp.M)  # get function values from C memory and convert to Julia type
 	elseif v == :c
 		if !isdefined(fp,:c)
 			error("c is not set.")
@@ -235,8 +233,10 @@ function trafo(fp::fastsumplan{D}) where {D}
   end
   if !isdefined(fp, :alpha)
     error("alpha has not been set.")
-  end
-  ptr = ccall(("jfastsum_trafo", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), fp.plan)
+	end
+	println("Starte Trafo")
+	ptr = ccall(("jfastsum_trafo", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), fp.plan)
+	println("Speichere Trafo")
   Core.setfield!(fp,:f,ptr)
 end #trafo
 

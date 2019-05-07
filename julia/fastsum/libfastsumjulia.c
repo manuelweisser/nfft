@@ -92,6 +92,7 @@ double _Complex* jfastsum_set_alpha(fastsum_plan* fp, double _Complex* alpha){
 
 
 double _Complex* jfastsum_trafo(fastsum_plan* fp){
+  fastsum_precompute(fp);
   fastsum_trafo(fp);
   return fp -> f;
 }
