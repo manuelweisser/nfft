@@ -1,6 +1,6 @@
 module NFCT
 
-export Plan,nfct_plan
+export NFCTplan,nfct_plan
 
 # Passen die Pfade so?
 # file ending for OS
@@ -52,7 +52,7 @@ mutable struct nfct_plan
 end
 
 # NFCT plan struct
-mutable struct Plan{D}
+mutable struct NFCTplan{D}
 	N::NTuple{D,Int32}      # bandwidth tuple
 	M::Int32                # number of nodes
 	n::NTuple{D,Int32}      # oversampling per dimension
@@ -65,14 +65,14 @@ mutable struct Plan{D}
 	f::Ref{ComplexF64}      # function values
 	fhat::Ref{ComplexF64}   # Fourier coefficients
 	plan::Ref{nfct_plan}    # plan (C pointer)
-	function Plan{D}(N::NTuple{D,Int32},M::Int32,n::NTuple{D,Int32},m::Int32,f1::UInt32,f2::UInt32) where D
+	function NFCTplan{D}(N::NTuple{D,Int32},M::Int32,n::NTuple{D,Int32},m::Int32,f1::UInt32,f2::UInt32) where D
 	# create plan object
 	new(N,M,n,m,f1,f2,false,false)
 	end
 end
 
-# additional constructor for easy use [Plan((N,N),M) instead of Plan{2}((N,N),M)]
-function Plan(N::NTuple{D,Integer},M::Integer) where {D}
+# additional constructor for easy use [NFCTplan((N,N),M) instead of NFCTplan{2}((N,N),M)]
+function NFCTplan(N::NTuple{D,Integer},M::Integer) where {D}
 	if any(x->x<=0,N)
 		error("Every entry of N has to be an even, positive integer." )
 	end
@@ -101,10 +101,10 @@ function Plan(N::NTuple{D,Integer},M::Integer) where {D}
 		f1 = f1_default_1d
 	end
 
-	Plan{D}(NTuple{D,Int32}(N),Int32(M),n,Int32(8),f1,f2_default)
+	NFCTplan{D}(NTuple{D,Int32}(N),Int32(M),n,Int32(8),f1,f2_default)
 end
 
-function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(8),f1::UInt32=(D > 1 ? f1_default : f1_default_1d),f2::UInt32=f2_default) where {D}
+function NFCTplan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=Int32(8),f1::UInt32=(D > 1 ? f1_default : f1_default_1d),f2::UInt32=f2_default) where {D}
 	@info "You are using the guru interface. Please consult the README if you are having trouble."
 
     # safety checks
@@ -136,13 +136,13 @@ function Plan(N::NTuple{D,Integer},M::Integer,n::NTuple{D,Integer},m::Integer=In
 		error("m has to be a positive integer." )
 	end
 
-	Plan{D}(NTuple{D,Int32}(N),Int32(M),NTuple{D,Int32}(n),Int32(m),(f1 | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT),f2)
+	NFCTplan{D}(NTuple{D,Int32}(N),Int32(M),NTuple{D,Int32}(n),Int32(m),(f1 | MALLOC_X | MALLOC_F_HAT | MALLOC_F | FFTW_INIT),f2)
 end
 
 # finalizer
-function finalize_plan(P::Plan{D}) where {D}
+function finalize_plan(P::NFCTplan{D}) where {D}
 	if !P.init_done
-		error("Plan not initialized.")
+		error("NFCTplan not initialized.")
 	end
 
 	if !P.finalized
@@ -152,7 +152,7 @@ function finalize_plan(P::Plan{D}) where {D}
 end
 
 # allocate plan memory and init with D,N,M,n,m,f1,f2
-function nfct_init(p::Plan{D}) where {D}
+function nfct_init(p::NFCTplan{D}) where {D}
 	# convert N and n to vectors for passing them over to C
 	Nv = collect(p.N)
 	n = collect(p.n)
@@ -170,7 +170,7 @@ function nfct_init(p::Plan{D}) where {D}
 end
 
 # overwrite dot notation for plan struct in order to use C memory
-function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
+function Base.setproperty!(p::NFCTplan{D},v::Symbol,val) where {D}
 	# init plan if not done [usually with setting nodes]
 	if !p.init_done
 		nfct_init(p)
@@ -178,7 +178,7 @@ function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
 
 	# prevent bad stuff from happening
 	if p.finalized
-		error("Plan already finalized")
+		error("NFCTplan already finalized")
 	end
 
 	# setting nodes, verification of correct size Mxd
@@ -248,7 +248,7 @@ function Base.setproperty!(p::Plan{D},v::Symbol,val) where {D}
 end
 
 # overwrite dot notation for plan struct in order to use C memory
-function Base.getproperty(p::Plan{D},v::Symbol) where {D}
+function Base.getproperty(p::NFCTplan{D},v::Symbol) where {D}
 	if v == :x
 		if !isdefined(p,:x)
 			error("x is not set.")
@@ -277,10 +277,10 @@ function Base.getproperty(p::Plan{D},v::Symbol) where {D}
 end
 
 # nfct trafo direct [call with NFCT.trafo_direct outside module]
-function trafo_direct(P::Plan{D}) where {D}
+function trafo_direct(P::NFCTplan{D}) where {D}
 	# prevent bad stuff from happening
 	if P.finalized
-		error("Plan already finalized")
+		error("NFCTplan already finalized")
 	end
 
 	if !isdefined(P, :fhat)
@@ -296,10 +296,10 @@ function trafo_direct(P::Plan{D}) where {D}
 end
 
 # adjoint trafo direct [call with NFCT.adjoint_direct outside module]
-function adjoint_direct(P::Plan{D}) where {D}
+function adjoint_direct(P::NFCTplan{D}) where {D}
 	# prevent bad stuff from happening
 	if P.finalized
-		error("Plan already finalized")
+		error("NFCTplan already finalized")
 	end
 	if !isdefined(P, :f)
 		error("f has not been set.")
@@ -312,10 +312,10 @@ function adjoint_direct(P::Plan{D}) where {D}
 end
 
 # nfct trafo [call with NFCT.trafo outside module]
-function trafo(P::Plan{D}) where {D}
+function trafo(P::NFCTplan{D}) where {D}
 	# prevent bad stuff from happening
 	if P.finalized
-		error("Plan already finalized")
+		error("NFCTplan already finalized")
 	end
 	if !isdefined(P, :fhat)
 		error("fhat has not been set.")
@@ -328,10 +328,10 @@ function trafo(P::Plan{D}) where {D}
 end
 
 # adjoint trafo [call with NFCT.adjoint outside module]
-function adjoint(P::Plan{D}) where {D}
+function adjoint(P::NFCTplan{D}) where {D}
 	# prevent bad stuff from happening
 	if P.finalized
-		error("Plan already finalized")
+		error("NFCTplan already finalized")
 	end
 	if !isdefined(P, :f)
 		error("f has not been set.")
