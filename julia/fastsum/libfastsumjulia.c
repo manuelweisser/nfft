@@ -68,17 +68,21 @@ void jfastsum_init(fastsum_plan* fp,int D,int N,int M,char* s,R* c,int n,int m,i
 
 double* jfastsum_set_x(fastsum_plan* fp, double* x){
   int N = fp -> N_total;
-  int k;
+  int d = fp->d;
+  int k,l;
   for (k=0; k<N; k++)
-    fp -> x[k] = x[k];
+    for (l=0; l<d; l++)
+      fp -> x[k*d+l] = x[k*d+l];
   return fp->x;
 }
 
 double* jfastsum_set_y(fastsum_plan* fp, double* y){
   int M = fp -> M_total;
-  int k;
+  int d = fp -> d;
+  int k,l;
   for (k=0; k<M; k++)
-    fp -> y[k] = y[k];
+    for (l=0; l<d; l++)
+        fp -> y[k*d+l] = y[k*d+l];
   return fp->y;
 }
 
@@ -95,6 +99,11 @@ double _Complex* jfastsum_trafo(fastsum_plan* fp){
   fastsum_precompute(fp);
   fastsum_trafo(fp);
   return fp -> f;
+}
+
+double _Complex* jfastsum_exact(fastsum_plan* fp){
+  fastsum_exact(fp);
+  return fp ->f;
 }
 
 void jfastsum_finalize(fastsum_plan* fp){

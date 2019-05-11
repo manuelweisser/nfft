@@ -183,7 +183,7 @@ function Base.getproperty(fp::fastsumplan{D},v::Symbol) where {D}
 		if D==1
 			return unsafe_wrap(Vector{Float64},ptr,fp.N)             # get source nodes from C memory and convert to Julia type
 		else
-			return unsafe_wrap(Matrix{Float64},ptr,(D,Int64(fp.N)))  # get source odes from C memory and convert to Julia type
+			return unsafe_wrap(Matrix{Float64},ptr,(D,Int64(fp.N)))  # get source nodes from C memory and convert to Julia type
 		end
 
 	elseif v == :y
@@ -191,18 +191,18 @@ function Base.getproperty(fp::fastsumplan{D},v::Symbol) where {D}
 			error("y is not set.")
 		end
 		ptr = Core.getfield(fp,:y)
-		return unsafe_wrap(Vector{Float64},ptr,fp.M)             # get target nodes from C memory and convert to Julia type
+		if D==1
+			return unsafe_wrap(Vector{Float64},ptr,fp.M)             # get target nodes from C memory and convert to Julia type
+		else
+			return unsafe_wrap(Matrix{Float64},ptr,(D,Int64(fp.M)))
+		end 
 
 	elseif v == :alpha
 		if !isdefined(fp,:alpha)
 			error("alpha is not set.")
 		end
 		ptr = Core.getfield(fp,:alpha)
-		if D==1
-			return unsafe_wrap(Vector{Float64},ptr,fp.N)             # get coefficients from C memory and convert to Julia type
-		else
-			return unsafe_wrap(Matrix{Float64},ptr,(D,Int64(fp.N)))  # get coefficients from C memory and convert to Julia type
-		end
+		return unsafe_wrap(Vector{ComplexF64},ptr,fp.N)             # get coefficients from C memory and convert to Julia type
 
 	elseif v == :f
 		if !isdefined(fp,:f)
@@ -234,11 +234,24 @@ function trafo(fp::fastsumplan{D}) where {D}
   if !isdefined(fp, :alpha)
     error("alpha has not been set.")
 	end
-	println("Starte Trafo")
 	ptr = ccall(("jfastsum_trafo", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), fp.plan)
-	println("Speichere Trafo")
   Core.setfield!(fp,:f,ptr)
 end #trafo
 
-
+function trafo_exact(fp::fastsumplan{D}) where {D}
+  if fp.finalized
+    error("Plan already finalized.")
+  end
+  if !isdefined(fp, :x)
+    error("x has not been set.")
+  end
+  if !isdefined(fp, :y)
+    error("y has not been set.")
+  end
+  if !isdefined(fp, :alpha)
+    error("alpha has not been set.")
+	end
+	ptr = ccall(("jfastsum_exact", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), fp.plan)
+  Core.setfield!(fp,:f_exact,ptr)
+end #trafo
 end #module
