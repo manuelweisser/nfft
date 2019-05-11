@@ -62,8 +62,8 @@ mutable struct NFCTplan{D}
 	init_done::Bool         # bool for plan init
 	finalized::Bool	    	# bool for finalizer
 	x::Ref{Float64}         # nodes
-	f::Ref{ComplexF64}      # function values
-	fhat::Ref{ComplexF64}   # Fourier coefficients
+	f::Ref{Float64}      # function values
+	fhat::Ref{Float64}   # Fourier coefficients
 	plan::Ref{nfct_plan}    # plan (C pointer)
 	function NFCTplan{D}(N::NTuple{D,Int32},M::Int32,n::NTuple{D,Int32},m::Int32,f1::UInt32,f2::UInt32) where D
 	# create plan object
@@ -203,25 +203,25 @@ function Base.setproperty!(p::NFCTplan{D},v::Symbol,val) where {D}
 
     # setting values
     elseif v == :f
-		if typeof(val) != Array{ComplexF64,1}
-			error("f has to be a ComplexFloat64 vector.")
+		if typeof(val) != Array{Float64,1}
+			error("f has to be a Float64 vector.")
 		end
 		if size(val)[1] != p.M
-			error("f has to be a ComplexFloat64 vector of size M.")
+			error("f has to be a Float64 vector of size M.")
 		end
-		ptr = ccall(("jnfct_set_f",lib_path),Ptr{ComplexF64},(Ref{nfct_plan},Ref{ComplexF64}),p.plan,val)
+		ptr = ccall(("jnfct_set_f",lib_path),Ptr{Float64},(Ref{nfct_plan},Ref{Float64}),p.plan,val)
 		Core.setfield!(p,v,ptr)
 
 	# setting Fourier coefficients
 	elseif v == :fhat
-		if typeof(val) != Array{ComplexF64,1}
-			error("fhat has to be a ComplexFloat64 vector.")
+		if typeof(val) != Array{Float64,1}
+			error("fhat has to be a Float64 vector.")
 		end
 		l = prod(p.N)
 		if size(val)[1] != l
-			error("fhat has to be a ComplexFloat64 vector of size prod(N).")
+			error("fhat has to be a Float64 vector of size prod(N).")
 		end
-		ptr = ccall(("jnfct_set_fhat",lib_path),Ptr{ComplexF64},(Ref{nfct_plan},Ref{ComplexF64}),p.plan,val)
+		ptr = ccall(("jnfct_set_fhat",lib_path),Ptr{Float64},(Ref{nfct_plan},Ref{Float64}),p.plan,val)
 		Core.setfield!(p,v,ptr)
 
     # prevent modification of NFCT plan pointer
@@ -264,13 +264,13 @@ function Base.getproperty(p::NFCTplan{D},v::Symbol) where {D}
 			error("f is not set.")
 		end
 		ptr = Core.getfield(p,:f)
-		return unsafe_wrap(Vector{ComplexF64},ptr,p.M)  # get function values from C memory and convert to Julia type
+		return unsafe_wrap(Vector{Float64},ptr,p.M)  # get function values from C memory and convert to Julia type
 	elseif v == :fhat
 		if !isdefined(p,:fhat)
 			error("fhat is not set.")
 		end
 		ptr = Core.getfield(p,:fhat)
-		return unsafe_wrap(Vector{ComplexF64},ptr,prod(p.N)) # get Fourier coefficients from C memory and convert to Julia type
+		return unsafe_wrap(Vector{Float64},ptr,prod(p.N)) # get Fourier coefficients from C memory and convert to Julia type
 	else
 		return Core.getfield(p,v)
 	end
@@ -291,7 +291,7 @@ function trafo_direct(P::NFCTplan{D}) where {D}
 		error("x has not been set.")
 	end
 
-	ptr = ccall(("jnfct_trafo_direct",lib_path),Ptr{ComplexF64},(Ref{nfct_plan},),P.plan)
+	ptr = ccall(("jnfct_trafo_direct",lib_path),Ptr{Float64},(Ref{nfct_plan},),P.plan)
 	Core.setfield!(P,:f,ptr)
 end
 
@@ -307,7 +307,7 @@ function adjoint_direct(P::NFCTplan{D}) where {D}
 	if !isdefined(P,:x)
 		error("x has not been set.")
 	end
-	ptr = ccall(("jnfct_adjoint_direct",lib_path),Ptr{ComplexF64},(Ref{nfct_plan},),P.plan)
+	ptr = ccall(("jnfct_adjoint_direct",lib_path),Ptr{Float64},(Ref{nfct_plan},),P.plan)
 	Core.setfield!(P,:fhat,ptr)
 end
 
@@ -323,7 +323,7 @@ function trafo(P::NFCTplan{D}) where {D}
 	if !isdefined(P,:x)
 		error("x has not been set.")
 	end
-	ptr = ccall(("jnfct_trafo",lib_path),Ptr{ComplexF64},(Ref{nfct_plan},),P.plan)
+	ptr = ccall(("jnfct_trafo",lib_path),Ptr{Float64},(Ref{nfct_plan},),P.plan)
 	Core.setfield!(P,:f,ptr)
 end
 
@@ -339,7 +339,7 @@ function adjoint(P::NFCTplan{D}) where {D}
 	if !isdefined(P,:x)
 		error("x has not been set.")
 	end
-	ptr = ccall(("jnfct_adjoint",lib_path),Ptr{ComplexF64},(Ref{nfct_plan},),P.plan)
+	ptr = ccall(("jnfct_adjoint",lib_path),Ptr{Float64},(Ref{nfct_plan},),P.plan)
 	Core.setfield!(P,:fhat,ptr)
 end
 
