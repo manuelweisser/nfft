@@ -252,6 +252,6 @@ function trafo_exact(fp::fastsumplan{D}) where {D}
     error("alpha has not been set.")
 	end
 	ptr = ccall(("jfastsum_exact", lib_path), Ptr{ComplexF64}, (Ref{fastsum_plan},), fp.plan)
-  Core.setfield!(fp,:f_exact,ptr)
+  Core.setfield!(fp,:f,ptr)
 end #trafo
 end #module
