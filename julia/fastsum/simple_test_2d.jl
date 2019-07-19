@@ -9,9 +9,9 @@ N = 100;
 M = 100;
 kernel = "multiquadric";
 c = (1/sqrt(N),3.5);
-m = 4;
-p = 7;
-n = 100*128;
+m = 8;
+p = 3;
+n = 2048;
 eps_I = p/n;
 eps_B =  1/32;
 
@@ -48,7 +48,7 @@ for i=1:M
 end
 
 fastsum.trafo_exact(pt);
-f2 = pt.f_exact;
+f2 = pt.f;
 error_vector = f_alg-f2;
 
 E_2 = norm(error_vector)/norm(f1)
